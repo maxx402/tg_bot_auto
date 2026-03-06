@@ -33,8 +33,9 @@ class SendPhotoToTelegram extends Command
 
         $channelId = config('services.telegram.channel_id');
 
-        if (!$channelId) {
+        if (! $channelId) {
             $this->error('Telegram channel ID not configured. Please set TELEGRAM_CHANNEL_ID in .env');
+
             return self::FAILURE;
         }
 
@@ -42,31 +43,33 @@ class SendPhotoToTelegram extends Command
         $this->info('Testing Telegram bot connection...');
         $test = $telegram->testConnection();
 
-        if (!$test['success']) {
-            $this->error('Failed to connect to Telegram: ' . $test['error']);
+        if (! $test['success']) {
+            $this->error('Failed to connect to Telegram: '.$test['error']);
+
             return self::FAILURE;
         }
 
-        $this->info('Connected to Telegram bot: ' . $test['bot']->username);
+        $this->info('Connected to Telegram bot: '.$test['bot']->username);
 
         // Random delay between 1-3 minutes (unless --no-delay flag is set)
-        if (!$this->option('no-delay')) {
+        if (! $this->option('no-delay')) {
             $delaySeconds = rand(60, 180); // 60-180 seconds = 1-3 minutes
             $delayMinutes = round($delaySeconds / 60, 1);
             $this->info("Waiting {$delayMinutes} minutes before sending...");
             sleep($delaySeconds);
         }
 
-        // Find one unsent photo
+        // Find one unsent photo (randomly selected)
         $content = Content::query()
             ->where('type', 'photo')
             ->whereNull('sent_at')
             ->where('status', 1) // 1 = active
-            ->orderBy('id')
+            ->inRandomOrder()
             ->first();
 
-        if (!$content) {
+        if (! $content) {
             $this->info('No unsent photos found.');
+
             return self::SUCCESS;
         }
 
@@ -83,10 +86,12 @@ class SendPhotoToTelegram extends Command
                 ]);
 
                 $this->info('✓ Sent successfully');
+
                 return self::SUCCESS;
             } else {
                 $content->increment('send_attempts');
                 $this->error('✗ Failed to send (no exception thrown)');
+
                 return self::FAILURE;
             }
         } catch (\Exception $e) {
@@ -98,8 +103,8 @@ class SendPhotoToTelegram extends Command
             ]);
 
             $this->error("✗ Failed: {$errorMessage}");
+
             return self::FAILURE;
         }
     }
 }
-

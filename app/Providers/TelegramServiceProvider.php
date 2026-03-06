@@ -23,7 +23,7 @@ class TelegramServiceProvider extends ServiceProvider
             return new Nutgram($token, new Configuration(
                 clientTimeout: 120, // 120 seconds for large file uploads
                 clientOptions: [
-                    'version' => '1.1', // Force HTTP/1.1 instead of HTTP/2
+                    'version' => '1.1', // Force HTTP/1.1 instead of HTTP/2 (for servers without HTTP/2 support)
                 ]
             ));
         });
