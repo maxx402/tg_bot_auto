@@ -16,12 +16,15 @@ class TelegramServiceProvider extends ServiceProvider
         $this->app->singleton(Nutgram::class, function ($app) {
             $token = config('services.telegram.bot_token');
 
-            if (!$token) {
+            if (! $token) {
                 throw new \RuntimeException('Telegram bot token not configured. Please set TELEGRAM_BOT_TOKEN in .env');
             }
 
             return new Nutgram($token, new Configuration(
-                clientTimeout: 120 // 120 seconds for large file uploads
+                clientTimeout: 120, // 120 seconds for large file uploads
+                clientOptions: [
+                    'version' => '1.1', // Force HTTP/1.1 instead of HTTP/2
+                ]
             ));
         });
     }
